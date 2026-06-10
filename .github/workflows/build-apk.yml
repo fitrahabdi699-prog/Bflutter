@@ -21,8 +21,8 @@ on:
         description: 'Package name Android'
         required: false
         default: 'com.webtoapp.myapp'
-      icon_base64:
-        description: 'Ikon base64 (opsional)'
+      icon_filename:
+        description: 'Path ikon di repo (opsional)'
         required: false
         default: ''
 
@@ -146,9 +146,13 @@ jobs:
           sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$MANIFEST"
 
       - name: 🖼️ Set App Icon (jika ada)
-        if: ${{ github.event.inputs.icon_base64 != '' }}
+        if: ${{ github.event.inputs.icon_filename != '' }}
         run: |
-          echo "${{ github.event.inputs.icon_base64 }}" | base64 -d > /tmp/icon.png
+          # Download ikon dari repo
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "https://raw.githubusercontent.com/${{ github.repository }}/main/${{ github.event.inputs.icon_filename }}" \
+            -o /tmp/icon.png
           # Salin ke semua resolusi mipmap
           for DIR in myapp_project/android/app/src/main/res/mipmap-*; do
             cp /tmp/icon.png "$DIR/ic_launcher.png" 2>/dev/null || true
